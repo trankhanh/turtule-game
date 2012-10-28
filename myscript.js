@@ -93,31 +93,31 @@
 			// } 
 		// }
 		
-			// move left
-	if(keyboard[37]) {
-		spaceship.x -= 10;
-		if(spaceship.x < 0) {
-			spaceship.x = 0;
+		// move left
+		if(keyboard[37]) {
+			spaceship.x -= 10;
+			if(spaceship.x < 0) {
+				spaceship.x = 0;
+			}
 		}
-	}
-	// move right
-	if(keyboard[39]) {
-		spaceship.x += 10;
-		var right = canvas.width - spaceship.width;
-		if(spaceship.x > right) {
-			spaceship.x = right;
+		// move right
+		if(keyboard[39]) {
+			spaceship.x += 10;
+			var right = canvas.width - spaceship.width;
+			if(spaceship.x > right) {
+				spaceship.x = right;
+			}
 		}
-	}
-	// spacebar pressed
-	if(keyboard[32]) {
-		// only fire one laser
-		if(!keyboard.fired) {
-			fireLaser();
-			keyboard.fired = true;
-		} else {
-			keyboard.fired = false;
+		// spacebar pressed
+		if(keyboard[32]) {
+			// only fire one laser
+			if(!keyboard.fired) {
+				fireLaser();
+				keyboard.fired = true;
+			} else {
+				keyboard.fired = false;
+			}
 		}
-	}
 
 	}
 	
