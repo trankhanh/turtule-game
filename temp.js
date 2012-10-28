@@ -1,7 +1,5 @@
-window.onload = function () {
-  
-  
-var canvas = document.getElementById('canvas');
+ 
+var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
 var spaceship = {
 	x: 100,
@@ -41,76 +39,72 @@ function addEvent(node, name, func) {
 	}
 }
 
+
+var lasers = []; // array holding the lasers
+function drawLasers() {
+context.fillStyle = "white";
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		context.fillRect(laser.x, laser.y, laser.width, laser.height);
+	}
+}
+function updateLasers() {
+	// move the laser
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		laser.y -= 2;
+		laser.counter++;
+	}
+	// remove lasers that are off the screen
+	lasers = lasers.filter(function(laser) {
+		return laser.y > 0;
+	});
+}
+function fireLaser() {
+	lasers.push ({
+		x: spaceship.x + 20, //offset
+		y: spaceship.y - 10,
+		width: 10,
+		height: 30
+	});
+}
+function updateSpaceship() {
+	// move left
+	if(keyboard[37]) {
+		spaceship.x -= 10;
+		if(spaceship.x < 0) {
+			spaceship.x = 0;
+		}
+	}
+	// move right
+	if(keyboard[39]) {
+		spaceship.x += 10;
+		var right = canvas.width - spaceship.width;
+		if(spaceship.x > right) {
+			spaceship.x = right;
+		}
+	}
+	// spacebar pressed
+	if(keyboard[32]) {
+		// only fire one laser
+		if(!keyboard.fired) {
+			fireLaser();
+			keyboard.fired = true;
+		} else {
+			keyboard.fired = false;
+		}
+	}
+}
+
 function gameLoop() {
 	updateSpaceship();
 	drawBackground();
 	drawSpaceship();
 	drawLasers();
-	updateLasers();
-	
+	updateLasers();	
 }
+
 addKeyboardEvents();
 setInterval(gameLoop, 1000 / 60);
 
 
-
-
-var lasers = []; // array holding the lasers
-function drawLasers() {
-context.fillStyle = "white";
-for(var iter in lasers) {
-var laser = lasers[iter];
-context.fillRect(laser.x, laser.y, laser.width, laser.height);
-}
-}
-function updateLasers() {
-// move the laser
-for(var iter in lasers) {
-var laser = lasers[iter];
-laser.y -= 2;
-laser.counter++;
-}
-// remove lasers that are off the screen
-lasers = lasers.filter(function(laser) {
-return laser.y > 0;
-});
-}
-function fireLaser() {
-lasers.push ({
-x: spaceship.x + 20, //offset
-y: spaceship.y - 10,
-width: 10,
-height: 30
-});
-}
-function updateSpaceship() {
-// move left
-if(keyboard[37]) {
-spaceship.x -= 10;
-if(spaceship.x < 0) {
-spaceship.x = 0;
-}
-}
-// move right
-if(keyboard[39]) {
-spaceship.x += 10;
-var right = canvas.width - spaceship.width;
-if(spaceship.x > right) {
-spaceship.x = right;
-}
-}
-// spacebar pressed
-if(keyboard[32]) {
-// only fire one laser
-if(!keyboard.fired) {
-fireLaser();
-keyboard.fired = true;
-} else {
-keyboard.fired = false;
-}
-}
-}
-
-
-
-}
