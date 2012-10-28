@@ -153,7 +153,7 @@ lasers.push ({
 x: spaceship.x + 20, //offset
 y: spaceship.y - 10,
 width: 5,
-height: 30
+height: 10
 });
 //playSound('laser');
 }
