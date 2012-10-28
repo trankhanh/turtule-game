@@ -95,10 +95,56 @@ function updateSpaceship() {
 		}
 	}
 }
+var game = {
+	state: "start"
+};
+var invaders = [];
+function drawInvaders() {
+	for(var iter in invaders) {
+		var invader = invaders[iter];
+		context.fillStyle = "red";
+		context.fillRect(invader.x, invader.y, invader.width, invader.height);
+	}
+}
+
+function updateInvaders() {
+	// populate invaders array
+	if(game.state === "start") {
+		for(var iter = 0; iter < 10; iter++) {
+			invaders.push({
+				x: 10 + iter * 50,
+				y: 10,
+				height: 40,
+				width: 40,
+				phase: Math.floor(Math.random() * 50),
+				counter: 0,
+				state: "alive"
+			});
+		}
+		game.state = "playing"
+	}
+	for(var iter in invaders) {
+		var invader = invaders[iter];
+		if(!invader) {
+			continue;
+		}
+		if(invader && invader.state == "alive") {
+			invader.counter++;
+			invader.x += Math.sin(invader.counter * Math.PI * 2 / 100) * 3;
+		}
+	}
+}
+
+
 
 function gameLoop() {
-	updateSpaceship();
 	drawBackground();
+
+	updateInvaders();
+	updateSpaceship();
+	
+	drawInvaders();
+
 	drawSpaceship();
 	drawLasers();
 	updateLasers();	
