@@ -45,7 +45,6 @@ function drawLasers() {
 context.fillStyle = "white";
 	for(var iter in lasers) {
 		var laser = lasers[iter];
-		if(laser.state != 'boom')
 		context.fillRect(laser.x, laser.y, laser.width, laser.height);
 	}
 }
@@ -66,11 +65,41 @@ function fireLaser() {
 		x: spaceship.x + 20, //offset
 		y: spaceship.y - 10,
 		width: 10,
-		height: 30,
-		state : 'ready',
+		height: 30
 	});
 }
+// function updateSpaceship() {
+	// // move left
+	// if(keyboard[37]) {
+		// spaceship.x -= 10;
+		// if(spaceship.x < 0) {
+			// spaceship.x = 0;
+		// }
+	// }
+	// // move right
+	// if(keyboard[39]) {
+		// spaceship.x += 10;
+		// var right = canvas.width - spaceship.width;
+		// if(spaceship.x > right) {
+			// spaceship.x = right;
+		// }
+	// }
+	// // spacebar pressed
+	// if(keyboard[32]) {
+		// // only fire one laser
+		// if(!keyboard.fired) {
+			// fireLaser();
+			// keyboard.fired = true;
+		// } else {
+			// keyboard.fired = false;
+		// }
+	// }
+// }
+
 function updateSpaceship() {
+	if (spaceship.state === 'dead') {
+		return;
+	}
 	// move left
 	if(keyboard[37]) {
 		spaceship.x -= 10;
@@ -86,9 +115,6 @@ function updateSpaceship() {
 			spaceship.x = right;
 		}
 	}
-
-}
-function addLaserReal(){
 	// spacebar pressed
 	if(keyboard[32]) {
 		// only fire one laser
@@ -100,18 +126,32 @@ function addLaserReal(){
 		}
 	}
 }
+
 var game = {
 	state: "start"
 };
 var invaders = [];
+// function drawInvaders() {
+	// for(var iter in invaders) {
+		// var invader = invaders[iter];
+		// context.fillStyle = "red";
+		// context.fillRect(invader.x, invader.y, invader.width, invader.height);
+	// }
+// }
+
 function drawInvaders() {
 	for(var iter in invaders) {
 		var invader = invaders[iter];
-		if(invader.state == 'alive') {
-			context.fillStyle = 'red';
-			context.fillRect(invader.x, invader.y, invader.width, invader.height);
+		if(invader.state == "alive") {
+			context.fillStyle = "red";
 		}
-
+		if(invader.state == "hit") {
+			context.fillStyle = "purple";
+		}
+		if(invader.state == "dead") {
+			context.fillStyle = "white"; //unimportant cause invaders has been filterd by updateInvaders() function
+		}
+		context.fillRect(invader.x, invader.y, invader.width, invader.height);
 	}
 }
 
@@ -136,50 +176,116 @@ function updateInvaders() {
 		if(!invader) {
 			continue;
 		}
-		if(invader && invader.state == "alive") {
+		if(invader && invader.state === "alive") {
 			invader.counter++;
-			invader.x += Math.sin(invader.counter * Math.PI * 2 / 200) * 1.5;
-		}
-	}
-}
-
-// function checkHit() {
-		// hit();
-		// for(var j = 0; j < invaders.length; j++){
-			// if(invaders.length == 0) {
-				// continue;
-			// }
-			// var invader = invaders[j];
-			// if(invader.state == 'dead') {
-				// invader.color = "#000";
-			// }
-		// }
-// }
-function hits() {
-	for(var iter in lasers){
-		var laser = lasers[iter];
-		//alert(laser.state);
-		for(var j = 0; j < invaders.length; j++){
-			var invader = invaders[j];
-			if((laser.state != 'boom') &&(invader.state != 'dead') && ((invader.x < laser.x) &&  ( laser.x < invader.x + 40) || (invader.x< laser.x + 10) && (laser.x + 10 < invader.x + 40)) && (laser.y <= invader.y + 40)) {
-				// alert('iter ' + iter + ' j: ' + j + laser.state);
-				invader.state = 'dead';
-				context.fillStyle = "green";
-				context.fillRect(invader.x, invader.y, invader.width, invader.height);
-				
-				laser.state = 'boom';
-				// alert('iter ' + iter + ' j: ' + j + laser.state);
-				context.fillStyle = "#000";
-				context.fillRect(laser.x, laser.y, laser.width, laser.height);
-				//invaders.splice(j,1);
+			invader.x += Math.sin(invader.counter * Math.PI * 2 / 100) * 3;
+			// fire every
+			if((invader.counter + invader.phase) % 200 === 0) {
+				invaderMissiles.push(addInvaderMissile(invader));
 			}
 		}
+		if(invader && invader.state === "hit") {
+			invader.counter++;
+			// change state to dead to be cleaned up
+			if(invader.counter >= 20) {
+				invader.state = "dead";
+				invader.counter = 0;
+			}
+		}
+	}
+	
+	invaders = invaders.filter(function(event) {
+		if(event && event.state !== "dead") { return true; }
+		return false;
+	});
+}
 
+
+
+var invaderMissiles = [];
+function addInvaderMissile(invader){
+	return {
+		x: invader.x,
+		y: invader.y,
+		width: 10,
+		height: 33,
+		counter: 0
 	}
 }
+function drawInvaderMissiles() {
+	for(var iter in invaderMissiles) {
+		var laser = invaderMissiles[iter];
+		var xoffset = (laser.counter % 9) * 12 + 1;
+		var yoffset = 1;
+		context.fillStyle = "yellow";
+		context.fillRect(laser.x, laser.y, laser.width, laser.height);
+	}
+}
+function updateInvaderMissiles() {
+	for(var iter in invaderMissiles) {
+		var laser = invaderMissiles[iter];
+		laser.y += 3;
+		laser.counter++;
+	}
+}
+
+
+function checkHits() {
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		for(var inv in invaders) {
+			var invader = invaders[inv];
+			if(hit(laser, invader)) {
+				laser.state = "hit";
+				invader.state = "hit";
+				invader.counter = 0;
+			}
+		}
+	}
+	// check for enemy hits on the spaceship
+	if(spaceship.state == "hit" || spaceship.state == "dead") {
+		return;
+	}
+	for(var iter in invaderMissiles) {
+		var missle = invaderMissiles[iter];
+		if(hit(missle, spaceship)) {
+			missle.state = "hit";
+			spaceship.state = "hit";
+			spaceship.counter = 0;
+		}
+	}
+}
+
+
+function hit(a, b) {
+	var hit = false;
+	// horizontal collisions
+	if(b.x + b.width >= a.x && b.x < a.x + a.width) {
+		// vertical collision
+		if(b.y + b.height >= a.y && b.y < a.y + a.height) {
+			hit = true;
+		}
+	}
+	// a in b
+	if(b.x <= a.x && b.x + b.width >= a.x + a.width) {
+		if(b.y <= a.y && b.y + b.height >= a.y + a.height) {
+			hit = true;
+		}
+	}
+	// b in a
+	if(a.x <= b.x && a.x + a.width >= b.x + b.width) {
+		if(a.y <= b.y && a.y + a.height >= b.y + b.height) {
+			hit = true;
+		}
+	}
+	return hit;
+}
+
+
 
 function gameLoop() {
 	drawBackground();
+	checkHits();
 	updateInvaders();
 	updateSpaceship();
 	
@@ -187,19 +293,13 @@ function gameLoop() {
 
 	drawSpaceship();
 	drawLasers();
-		updateLasers();	
-			hits();
+	updateLasers();
+	drawInvaderMissiles();
+	updateInvaderMissiles();
 
-}
-function gameLoop2 () {
-	addLaserReal();
-
-
-	  
 }
 
 addKeyboardEvents();
-setInterval(gameLoop, 1000/60);
-setInterval(gameLoop2, 90);
+setInterval(gameLoop, 2000 / 60);
 
 
