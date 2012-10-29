@@ -45,6 +45,7 @@ function drawLasers() {
 context.fillStyle = "white";
 	for(var iter in lasers) {
 		var laser = lasers[iter];
+		if(laser.state != 'boom')
 		context.fillRect(laser.x, laser.y, laser.width, laser.height);
 	}
 }
@@ -65,7 +66,8 @@ function fireLaser() {
 		x: spaceship.x + 20, //offset
 		y: spaceship.y - 10,
 		width: 10,
-		height: 30
+		height: 30,
+		state : 'ready',
 	});
 }
 function updateSpaceship() {
@@ -84,6 +86,9 @@ function updateSpaceship() {
 			spaceship.x = right;
 		}
 	}
+
+}
+function addLaserReal(){
 	// spacebar pressed
 	if(keyboard[32]) {
 		// only fire one laser
@@ -102,8 +107,11 @@ var invaders = [];
 function drawInvaders() {
 	for(var iter in invaders) {
 		var invader = invaders[iter];
-		context.fillStyle = "red";
-		context.fillRect(invader.x, invader.y, invader.width, invader.height);
+		if(invader.state == 'alive') {
+			context.fillStyle = 'red';
+			context.fillRect(invader.x, invader.y, invader.width, invader.height);
+		}
+
 	}
 }
 
@@ -135,11 +143,43 @@ function updateInvaders() {
 	}
 }
 
+// function checkHit() {
+		// hit();
+		// for(var j = 0; j < invaders.length; j++){
+			// if(invaders.length == 0) {
+				// continue;
+			// }
+			// var invader = invaders[j];
+			// if(invader.state == 'dead') {
+				// invader.color = "#000";
+			// }
+		// }
+// }
+function hits() {
+	for(var iter in lasers){
+		var laser = lasers[iter];
+		//alert(laser.state);
+		for(var j = 0; j < invaders.length; j++){
+			var invader = invaders[j];
+			if((laser.state != 'boom') &&(invader.state != 'dead') && ((invader.x < laser.x) &&  ( laser.x < invader.x + 40) || (invader.x< laser.x + 10) && (laser.x + 10 < invader.x + 40)) && (laser.y <= invader.y + 40)) {
+				// alert('iter ' + iter + ' j: ' + j + laser.state);
+				invader.state = 'dead';
+				context.fillStyle = "green";
+				context.fillRect(invader.x, invader.y, invader.width, invader.height);
+				
+				laser.state = 'boom';
+				// alert('iter ' + iter + ' j: ' + j + laser.state);
+				context.fillStyle = "#000";
+				context.fillRect(laser.x, laser.y, laser.width, laser.height);
+				//invaders.splice(j,1);
+			}
+		}
 
+	}
+}
 
 function gameLoop() {
 	drawBackground();
-
 	updateInvaders();
 	updateSpaceship();
 	
@@ -147,10 +187,19 @@ function gameLoop() {
 
 	drawSpaceship();
 	drawLasers();
-	updateLasers();	
+		updateLasers();	
+			hits();
+
+}
+function gameLoop2 () {
+	addLaserReal();
+
+
+	  
 }
 
 addKeyboardEvents();
-setInterval(gameLoop, 1000 / 60);
+setInterval(gameLoop, 1000/60);
+setInterval(gameLoop2, 90);
 
 

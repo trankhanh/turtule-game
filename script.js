@@ -68,7 +68,38 @@ function fireLaser() {
 		height: 30
 	});
 }
+// function updateSpaceship() {
+	// // move left
+	// if(keyboard[37]) {
+		// spaceship.x -= 10;
+		// if(spaceship.x < 0) {
+			// spaceship.x = 0;
+		// }
+	// }
+	// // move right
+	// if(keyboard[39]) {
+		// spaceship.x += 10;
+		// var right = canvas.width - spaceship.width;
+		// if(spaceship.x > right) {
+			// spaceship.x = right;
+		// }
+	// }
+	// // spacebar pressed
+	// if(keyboard[32]) {
+		// // only fire one laser
+		// if(!keyboard.fired) {
+			// fireLaser();
+			// keyboard.fired = true;
+		// } else {
+			// keyboard.fired = false;
+		// }
+	// }
+// }
+
 function updateSpaceship() {
+	if (spaceship.state === 'dead') {
+		return;
+	}
 	// move left
 	if(keyboard[37]) {
 		spaceship.x -= 10;
@@ -95,14 +126,31 @@ function updateSpaceship() {
 		}
 	}
 }
+
 var game = {
 	state: "start"
 };
 var invaders = [];
+// function drawInvaders() {
+	// for(var iter in invaders) {
+		// var invader = invaders[iter];
+		// context.fillStyle = "red";
+		// context.fillRect(invader.x, invader.y, invader.width, invader.height);
+	// }
+// }
+
 function drawInvaders() {
 	for(var iter in invaders) {
 		var invader = invaders[iter];
-		context.fillStyle = "red";
+		if(invader.state == "alive") {
+			context.fillStyle = "red";
+		}
+		if(invader.state == "hit") {
+			context.fillStyle = "purple";
+		}
+		if(invader.state == "dead") {
+			context.fillStyle = "black";
+		}
 		context.fillRect(invader.x, invader.y, invader.width, invader.height);
 	}
 }
@@ -137,9 +185,50 @@ function updateInvaders() {
 
 
 
+function checkHits() {
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		for(var inv in invaders) {
+			var invader = invaders[inv];
+			if(hit(laser, invader)) {
+				laser.state = "hit";
+				invader.state = "hit";
+				invader.counter = 0;
+			}
+		}
+	}
+	// check for enemy hits on the player
+}
+
+function hit(a, b) {
+	var hit = false;
+	// horizontal collisions
+	if(b.x + b.width >= a.x && b.x < a.x + a.width) {
+		// vertical collision
+		if(b.y + b.height >= a.y && b.y < a.y + a.height) {
+			hit = true;
+		}
+	}
+	// a in b
+	if(b.x <= a.x && b.x + b.width >= a.x + a.width) {
+		if(b.y <= a.y && b.y + b.height >= a.y + a.height) {
+			hit = true;
+		}
+	}
+	// b in a
+	if(a.x <= b.x && a.x + a.width >= b.x + b.width) {
+		if(a.y <= b.y && a.y + a.height >= b.y + b.height) {
+			hit = true;
+		}
+	}
+	return hit;
+}
+
+
+
 function gameLoop() {
 	drawBackground();
-
+	checkHits();
 	updateInvaders();
 	updateSpaceship();
 	
@@ -148,9 +237,10 @@ function gameLoop() {
 	drawSpaceship();
 	drawLasers();
 	updateLasers();	
+
 }
 
 addKeyboardEvents();
-setInterval(gameLoop, 1000 / 60);
+setInterval(gameLoop, 2000 / 60);
 
 
