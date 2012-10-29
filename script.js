@@ -64,7 +64,7 @@ function fireLaser() {
 	lasers.push ({
 		x: spaceship.x + 20, //offset
 		y: spaceship.y - 10,
-		width: 10,
+		width: 5,
 		height: 30
 	});
 }
@@ -149,7 +149,7 @@ function drawInvaders() {
 			context.fillStyle = "purple";
 		}
 		if(invader.state == "dead") {
-			context.fillStyle = "black";
+			context.fillStyle = "white"; //unimportant cause invaders has been filterd by updateInvaders() function
 		}
 		context.fillRect(invader.x, invader.y, invader.width, invader.height);
 	}
@@ -176,13 +176,58 @@ function updateInvaders() {
 		if(!invader) {
 			continue;
 		}
-		if(invader && invader.state == "alive") {
+		if(invader && invader.state === "alive") {
 			invader.counter++;
 			invader.x += Math.sin(invader.counter * Math.PI * 2 / 100) * 3;
+			// fire every
+			if((invader.counter + invader.phase) % 200 === 0) {
+				invaderMissiles.push(addInvaderMissile(invader));
+			}
+		}
+		if(invader && invader.state === "hit") {
+			invader.counter++;
+			// change state to dead to be cleaned up
+			if(invader.counter >= 20) {
+				invader.state = "dead";
+				invader.counter = 0;
+			}
 		}
 	}
+	
+	invaders = invaders.filter(function(event) {
+		if(event && event.state !== "dead") { return true; }
+		return false;
+	});
 }
 
+
+
+var invaderMissiles = [];
+function addInvaderMissile(invader){
+	return {
+		x: invader.x,
+		y: invader.y,
+		width: 10,
+		height: 33,
+		counter: 0
+	}
+}
+function drawInvaderMissiles() {
+	for(var iter in invaderMissiles) {
+		var laser = invaderMissiles[iter];
+		var xoffset = (laser.counter % 9) * 12 + 1;
+		var yoffset = 1;
+		context.fillStyle = "yellow";
+		context.fillRect(laser.x, laser.y, laser.width, laser.height);
+	}
+}
+function updateInvaderMissiles() {
+	for(var iter in invaderMissiles) {
+		var laser = invaderMissiles[iter];
+		laser.y += 3;
+		laser.counter++;
+	}
+}
 
 
 function checkHits() {
@@ -197,8 +242,20 @@ function checkHits() {
 			}
 		}
 	}
-	// check for enemy hits on the player
+	// check for enemy hits on the spaceship
+	if(spaceship.state == "hit" || spaceship.state == "dead") {
+		return;
+	}
+	for(var iter in invaderMissiles) {
+		var missle = invaderMissiles[iter];
+		if(hit(missle, spaceship)) {
+			missle.state = "hit";
+			spaceship.state = "hit";
+			spaceship.counter = 0;
+		}
+	}
 }
+
 
 function hit(a, b) {
 	var hit = false;
@@ -236,11 +293,13 @@ function gameLoop() {
 
 	drawSpaceship();
 	drawLasers();
-	updateLasers();	
+	updateLasers();
+	drawInvaderMissiles();
+	updateInvaderMissiles();
 
 }
 
 addKeyboardEvents();
-setInterval(gameLoop, 2000 / 60);
+setInterval(gameLoop, 1000 / 60);
 
 
