@@ -64,7 +64,7 @@ function fireLaser() {
 	lasers.push ({
 		x: spaceship.x + 20, //offset
 		y: spaceship.y - 10,
-		width: 10,
+		width: 5,
 		height: 30
 	});
 }
@@ -300,6 +300,6 @@ function gameLoop() {
 }
 
 addKeyboardEvents();
-setInterval(gameLoop, 2000 / 60);
+setInterval(gameLoop, 1000 / 60);
 
 
