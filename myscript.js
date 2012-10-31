@@ -1,6 +1,7 @@
  
 var canvas = document.getElementById('game');
 var context = canvas.getContext('2d');
+
 var spaceship = {
 	x: 100,
 	y: 300,
@@ -8,94 +9,85 @@ var spaceship = {
 	height: 50,
 	counter: 0
 };
+var lasers = [];
 
+var invaders = [];
+var invaderMissiles = [];
 
+var keyboard = {};
 
+var game = {
+	state: "start"
+};
+var textOverlay = {
+	title: '',
+	subtitle: '',
+	x: 200,
+	y: 200,
+	alpha: 0,
+}
+
+/**********************************************************************************/
+/*
+ * Background #1
+ */
+function updateBackground() {
+	if(game.state == 'over') {
+		textOverlay.title = 'Game Over!',
+		textOverlay.subtitle = 'Press Spacebar to replay',
+		context.fillStyle = '#fff';
+		context.font = '30px Arial';
+		textOverlay.alpha += .05;
+		context.globalAlpha = textOverlay.alpha;
+		context.fillText(textOverlay.title, textOverlay.x, textOverlay.y);
+		context.fillText(textOverlay.subtitle, textOverlay.x - 50, textOverlay.y + 50);
+		context.globalAlpha = 1;
+	}
+	if(game.state == 'won') {
+		textOverlay.title = 'Win!',
+		textOverlay.subtitle = 'Press Spacebar to replay',
+		context.fillStyle = '#fff';
+		context.font = '30px Arial';
+		textOverlay.alpha += .05;
+		context.globalAlpha = textOverlay.alpha;
+		context.fillText(textOverlay.title, textOverlay.x, textOverlay.y);
+		context.fillText(textOverlay.subtitle, textOverlay.x - 50, textOverlay.y + 50);
+		context.globalAlpha = 1;	
+	}
+}
 function drawBackground() {
 	context.fillStyle = "#000000";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 }
-
-function drawSpaceship() {
-	context.fillStyle = "white";
-	context.fillRect(spaceship.x, spaceship.y, spaceship.width, spaceship.height);
-}
-
-var keyboard = {};
-function addKeyboardEvents() {
-	addEvent(document, "keydown", function(e) {
-		keyboard[e.keyCode] = true;
-	});
-	addEvent(document, "keyup", function(e) {
-		keyboard[e.keyCode] = false;
-	});
-}
-function addEvent(node, name, func) {
-	if(node.addEventListener) {
-		node.addEventListener(name, func, false);
-	} else if(node.attachEvent) {
-		// handle Microsoft browsers too
-		node.attachEvent(name, func);
+/**********************************************************************************/
+/*
+ * Update game state
+ */
+function updateGame() {
+	// if(spaceship.state == 'alive') {
+		// game.state = 'playing';
+	// }
+	if(spaceship.state == 'hit') {
+		
+	}
+	if(spaceship.state == 'dead') {
+		game.state = 'over';
+	}
+	if(game.state == 'playing' && invaders.length == 0){
+		game.state ='won';
+		
+	}
+	if(((game.state == 'over') || (game.state == 'won')) && keyboard[32]) {
+		invaders = [];
+		spaceship.state = 'alive';
+		invaderMissiles = [];
+		lasers = [];
+		game.state = 'start';
 	}
 }
-
-
-var lasers = []; // array holding the lasers
-function drawLasers() {
-context.fillStyle = "white";
-	for(var iter in lasers) {
-		var laser = lasers[iter];
-		context.fillRect(laser.x, laser.y, laser.width, laser.height);
-	}
-}
-function updateLasers() {
-	// move the laser
-	for(var iter in lasers) {
-		var laser = lasers[iter];
-		laser.y -= 2;
-		laser.counter++;
-	}
-	// remove lasers that are off the screen
-	lasers = lasers.filter(function(laser) {
-		return laser.y > 0;
-	});
-}
-function fireLaser() {
-	lasers.push ({
-		x: spaceship.x + 20, //offset
-		y: spaceship.y - 10,
-		width: 5,
-		height: 30
-	});
-}
-// function updateSpaceship() {
-	// // move left
-	// if(keyboard[37]) {
-		// spaceship.x -= 10;
-		// if(spaceship.x < 0) {
-			// spaceship.x = 0;
-		// }
-	// }
-	// // move right
-	// if(keyboard[39]) {
-		// spaceship.x += 10;
-		// var right = canvas.width - spaceship.width;
-		// if(spaceship.x > right) {
-			// spaceship.x = right;
-		// }
-	// }
-	// // spacebar pressed
-	// if(keyboard[32]) {
-		// // only fire one laser
-		// if(!keyboard.fired) {
-			// fireLaser();
-			// keyboard.fired = true;
-		// } else {
-			// keyboard.fired = false;
-		// }
-	// }
-// }
-
+/*
+ * Spaceship #2
+ */
 function updateSpaceship() {
 	if (spaceship.state === 'dead') {
 		return;
@@ -125,19 +117,82 @@ function updateSpaceship() {
 			keyboard.fired = false;
 		}
 	}
+	if(spaceship.state == 'hit') {
+		if(spaceship.counter > 20) {
+			spaceship.state = 'dead';
+		}
+	}
+	spaceship.counter++;
+
 }
 
-var game = {
-	state: "start"
-};
-var invaders = [];
-// function drawInvaders() {
-	// for(var iter in invaders) {
-		// var invader = invaders[iter];
-		// context.fillStyle = "red";
-		// context.fillRect(invader.x, invader.y, invader.width, invader.height);
-	// }
-// }
+function drawSpaceship() {
+	if(spaceship.state === "dead") {
+		return;
+	}
+	if(spaceship.state === "hit") {
+		context.fillStyle = "blue";
+		context.fillRect(spaceship.x, spaceship.y, spaceship.width, spaceship.height);
+		return;
+	}
+	context.fillStyle = "white";
+	context.fillRect(spaceship.x, spaceship.y, spaceship.width, spaceship.height);
+}
+/***********************************************************************************/
+/*
+ * Laser #3
+ */
+function updateLasers() {
+	// move the laser
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		laser.y -= 2;
+		laser.counter++;
+	}
+	// remove lasers that are off the screen
+	lasers = lasers.filter(function(laser) {
+		return laser.y > 0;
+	});
+}
+
+function drawLasers() {
+context.fillStyle = "white";
+	for(var iter in lasers) {
+		var laser = lasers[iter];
+		context.fillRect(laser.x, laser.y, laser.width, laser.height);
+	}
+}
+
+function fireLaser() {
+	lasers.push ({
+		x: spaceship.x + 20, //offset
+		y: spaceship.y - 10,
+		width: 5,
+		height: 30
+	});
+}
+/***********************************************************************************/
+/*
+ * Event #4
+ */
+function addKeyboardEvents() {
+	addEvent(document, "keydown", function(e) {
+		keyboard[e.keyCode] = true;
+	});
+	addEvent(document, "keyup", function(e) {
+		keyboard[e.keyCode] = false;
+	});
+}
+function addEvent(node, name, func) {
+	if(node.addEventListener) {
+		node.addEventListener(name, func, false);
+	} else if(node.attachEvent) {
+		// handle Microsoft browsers too
+		node.attachEvent(name, func);
+	}
+}
+
+/***********************************************************************************/
 
 function drawInvaders() {
 	for(var iter in invaders) {
@@ -201,17 +256,16 @@ function updateInvaders() {
 }
 
 
+/***********************************************************************************/
 
-var invaderMissiles = [];
-function addInvaderMissile(invader){
-	return {
-		x: invader.x,
-		y: invader.y,
-		width: 10,
-		height: 33,
-		counter: 0
+function updateInvaderMissiles() {
+	for(var iter in invaderMissiles) {
+		var laser = invaderMissiles[iter];
+		laser.y += 3;
+		laser.counter++;
 	}
 }
+
 function drawInvaderMissiles() {
 	for(var iter in invaderMissiles) {
 		var laser = invaderMissiles[iter];
@@ -221,15 +275,18 @@ function drawInvaderMissiles() {
 		context.fillRect(laser.x, laser.y, laser.width, laser.height);
 	}
 }
-function updateInvaderMissiles() {
-	for(var iter in invaderMissiles) {
-		var laser = invaderMissiles[iter];
-		laser.y += 3;
-		laser.counter++;
+
+function addInvaderMissile(invader){
+	return {
+		x: invader.x,
+		y: invader.y,
+		width: 10,
+		height: 33,
+		counter: 0
 	}
 }
 
-
+/***********************************************************************************/
 function checkHits() {
 	for(var iter in lasers) {
 		var laser = lasers[iter];
@@ -281,10 +338,12 @@ function hit(a, b) {
 	return hit;
 }
 
-
+/***********************************************************************************/
 
 function gameLoop() {
+	updateGame();
 	drawBackground();
+	updateBackground();
 	checkHits();
 	updateInvaders();
 	updateSpaceship();
